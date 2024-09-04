@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Voice</title>
+</head>
+<body>
+    <h2>Find Your Voice</h2>
+    <div>
+        <p>Generate lyrics by telling us about yourself.</p>
+        <a href="{{ url_for('start_from_scratch') }}"><button>Start From Scratch</button></a>
+    </div>
+    <div>
+        <p>Have a lyric in mind?</p>
+        <a href="{{ url_for('start_with_lyric') }}"><button>Start From Lyric</button></a>
+    </div>
+    <div>
+        <p>Return to previously generated lyrics.</p>
+        <a href="{{ url_for('pick_up_session') }}"><button>Pick Up From Last Session</button></a>
+    </div>
+</body>
+</html>

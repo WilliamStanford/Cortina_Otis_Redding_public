@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction</title>
+</head>
+<body>
+    <h1>
+        {% if activity == 'remix' %}
+            Remix Otis Redding
+        {% elif activity == 'songwriting' %}
+            Find Your Voice
+        {% elif activity == 'album_art' %}
+            Find Your Style
+        {% endif %}
+    </h1>
+    
+    {% if activity == 'songwriting' %}
+        <p>Who do you want to be in the world? Discover yourself through songwriting.</p>
+        <form action="#" method="post">
+            <button type="submit" name="start_type" value="scratch">Start from Scratch</button>
+            <button type="submit" name="start_type" value="lyric">Start with a Lyric</button>
+        </form>
+    {% elif activity == 'album_art' %}
+        <p>How do you want to express your music visually? Uncover your artistic style through album art.</p>
+        <form action="#" method="post">
+            <button>
+            <a href="{{ url_for('start_from_scratch') }}">Start from Scratch</a>
+            <button>
+            <button type="submit" name="start_type" value="upload">Upload Photo</button>
+        </form>
+    {% endif %}
+    <button>
+        <a href="{{ url_for('activity_selection') }}">Back to Activities</a>
+    </button>
+    </body>
+</html>

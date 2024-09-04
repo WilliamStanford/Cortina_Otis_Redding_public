@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <form action="{{ url_for('select_user') }}" method="post">
+        <button type="submit" name="user_type" value="otis_camp">Otis Music Camp</button>
+        <button type="submit" name="user_type" value="camp_dream">Camp Dream</button>
+        <button type="submit" name="user_type" value="guest">Guest</button>
+    </form>
+</body>
+</html>

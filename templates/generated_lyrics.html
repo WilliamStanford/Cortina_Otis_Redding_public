@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Generated Lyrics</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+        h1, h2, h3 { color: #333; }
+        pre { white-space: pre-wrap; background: #f4f4f4; padding: 15px; border-radius: 5px; }
+        .container { max-width: 800px; margin: auto; }
+        .preferences, .lyrics, .feedback-options { margin-bottom: 20px; }
+        select, textarea, button, input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .hidden { display: none; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover, .close:focus { color: black; text-decoration: none; }
+        #lyrics-explanation { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Generated Lyrics</h1>
+
+        <div class="preferences">
+            <h2>Your Preferences</h2>
+            <p><strong>Inspiration:</strong> <span id="inspiration">{{ inspiration }}</span></p>
+            <p><strong>Feeling:</strong> <span id="feeling">{{ feeling }}</span></p>
+            <p><strong>Music Style:</strong> <span id="music-preferences">{{ music_preferences }}</span></p>
+        </div>
+
+        <div class="lyrics">
+            <h2>Generated Lyrics</h2>
+            <pre id="lyrics-text">{{ lyrics }}</pre>
+        </div>
+
+        <div class="feedback-options">
+            <h2>Regenerate with Feedback</h2>
+            <select id="feedbackType">
+                <option value="dropdown">Structured Feedback</option>
+                <option value="text">Text Feedback</option>
+            </select>
+
+            <div id="lineSelection">
+                <h3>Select lines to change</h3>
+                <select id="lineRange">
+                    <option value="all">All lines</option>
+                    <option value="single">Single line</option>
+                    <option value="range">Range of lines</option>
+                </select>
+                <div id="singleLine" class="hidden">
+                    <input type="number" id="singleLineNumber" min="1" placeholder="Enter line number">
+                </div>
+                <div id="lineRangeInputs" class="hidden">
+                    <input type="number" id="startLine" min="1" placeholder="Start line">
+                    <input type="number" id="endLine" min="1" placeholder="End line">
+                </div>
+            </div>
+
+            <div id="dropdownFeedback">
+                <h3>Provide Structured Feedback</h3>
+                <form id="dropdownFeedbackForm">
+                    <div>
+                        <label for="emotion">How would you like to change the emotional tone?</label>
+                        <select id="emotion" name="emotion">
+                            <option value="No change">No change</option>
+                            <option value="more_upbeat">More upbeat</option>
+                            <option value="more_melancholic">More melancholic</option>
+                            <option value="more_energetic">More energetic</option>
+                            <option value="more_reflective">More reflective</option>
+                            <option value="keep_current">Keep current emotion</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="structure">How would you like to adjust the lyrical structure?</label>
+                        <select id="structure" name="structure">
+                            <option value="No change">No change</option>
+                            <option value="more_rhyme">More rhyme</option>
+                            <option value="less_rhyme">Less rhyme</option>
+                            <option value="shorter_lines">Shorter lines</option>
+                            <option value="longer_lines">Longer lines</option>
+                            <option value="keep_current">Keep current structure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="theme">How would you like to modify the theme or subject matter?</label>
+                        <select id="theme" name="theme">
+                            <option value="No change">No change</option>
+                            <option value="more_personal">More personal</option>
+                            <option value="more_abstract">More abstract</option>
+                            <option value="more_narrative">More narrative</option>
+                            <option value="more_metaphorical">More metaphorical</option>
+                            <option value="keep_current">Keep current theme</option>
+                        </select>
+                    </div>
+                    <button type="submit">Regenerate Lyrics</button>
+                </form>
+            </div>
+
+            <div id="textFeedback" class="hidden">
+                <h3>Provide Text Feedback</h3>
+                <form id="textFeedbackForm">
+                    <textarea name="feedback" rows="4" placeholder="Enter your feedback here"></textarea>
+                    <button type="submit">Regenerate Lyrics</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="additional-options">
+            <button id="extendLyrics">Extend Lyrics</button>
+            <button id="explainLyrics">Explain Lyrics</button>
+            <button id="backToQuestions">Go Back to Questions</button>
+        </div>
+    </div>
+
+    <div id="explanationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Lyrics Explanation</h2>
+            <div id="lyrics-explanation"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textFeedback = document.getElementById('textFeedback');
+            const dropdownFeedback = document.getElementById('dropdownFeedback');
+            const feedbackTypeSelect = document.getElementById('feedbackType');
+            const textFeedbackForm = document.getElementById('textFeedbackForm');
+            const dropdownFeedbackForm = document.getElementById('dropdownFeedbackForm');
+            const lineRange = document.getElementById('lineRange');
+            const singleLine = document.getElementById('singleLine');
+            const lineRangeInputs = document.getElementById('lineRangeInputs');
+            const backToQuestionsBtn = document.getElementById('backToQuestions');
+            const extendLyricsBtn = document.getElementById('extendLyrics');
+            const explainLyricsBtn = document.getElementById('explainLyrics');
+            const explanationModal = document.getElementById('explanationModal');
+            const closeModal = document.getElementsByClassName('close')[0];
+
+            feedbackTypeSelect.addEventListener('change', function() {
+                if (this.value === 'text') {
+                    textFeedback.classList.remove('hidden');
+                    dropdownFeedback.classList.add('hidden');
+                } else {
+                    textFeedback.classList.add('hidden');
+                    dropdownFeedback.classList.remove('hidden');
+                }
+            });
+
+            lineRange.addEventListener('change', function() {
+                if (this.value === 'single') {
+                    singleLine.classList.remove('hidden');
+                    lineRangeInputs.classList.add('hidden');
+                } else if (this.value === 'range') {
+                    singleLine.classList.add('hidden');
+                    lineRangeInputs.classList.remove('hidden');
+                } else {
+                    singleLine.classList.add('hidden');
+                    lineRangeInputs.classList.add('hidden');
+                }
+            });
+            function handleFeedbackSubmission(event, feedbackType) {
+                event.preventDefault();
+                console.log('Handling feedback submission:', feedbackType);
+                
+                const form = event.target;
+                const formData = new FormData(form);
+                const lyricsText = document.getElementById('lyrics-text').textContent;
+                const lyricsLines = lyricsText.split('\n');
+                
+                // Filter out section headers and empty lines
+                const actualLyricLines = lyricsLines.filter(line => 
+                    !line.trim().startsWith('**') && line.trim() !== ''
+                );
+                
+                let selectedText = '';
+                let fullLyrics = lyricsText;
+                
+                const data = {
+                    feedback_type: feedbackType,
+                    line_selection: lineRange.value,
+                };
+            
+                if (lineRange.value === 'single') {
+                    const lineNumber = parseInt(document.getElementById('singleLineNumber').value) - 1;
+                    if (lineNumber >= 0 && lineNumber < actualLyricLines.length) {
+                        selectedText = actualLyricLines[lineNumber];
+                        data.single_line = lineNumber + 1;
+                    } else {
+                        alert('Invalid line number');
+                        return;
+                    }
+                } else if (lineRange.value === 'range') {
+                    const startLine = parseInt(document.getElementById('startLine').value) - 1;
+                    const endLine = parseInt(document.getElementById('endLine').value) - 1;
+                    if (startLine >= 0 && endLine < actualLyricLines.length && startLine <= endLine) {
+                        selectedText = actualLyricLines.slice(startLine, endLine + 1).join('\n');
+                        data.start_line = startLine + 1;
+                        data.end_line = endLine + 1;
+                    } else {
+                        alert('Invalid line range');
+                        return;
+                    }
+                } else {
+                    selectedText = actualLyricLines.join('\n');
+                }
+            
+                data.selected_text = selectedText;
+                data.full_lyrics = fullLyrics;
+            
+                if (feedbackType === 'text') {
+                    data.feedback = formData.get('feedback');
+                } else {
+                    data.emotion = formData.get('emotion');
+                    data.structure = formData.get('structure');
+                    data.theme = formData.get('theme');
+                }
+            
+                console.log('Sending data:', data);
+            
+                fetch('/regenerate-lyrics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received response:', data);
+                    if (data.regenerated_lyrics) {
+                        let updatedLyrics = lyricsLines.slice(); // Create a copy of the original lyrics
+                        const regeneratedLines = data.regenerated_lyrics.trim().split('\n');
+                        
+                        if (lineRange.value === 'single') {
+                            // Find the index of the actual lyric line in the full lyrics
+                            let actualLineIndex = 0;
+                            let lyricLineCount = 0;
+                            for (let i = 0; i < lyricsLines.length; i++) {
+                                if (!lyricsLines[i].trim().startsWith('**') && lyricsLines[i].trim() !== '') {
+                                    if (lyricLineCount === data.single_line - 1) {
+                                        actualLineIndex = i;
+                                        break;
+                                    }
+                                    lyricLineCount++;
+                                }
+                            }
+                            updatedLyrics[actualLineIndex] = regeneratedLines[0];
+                        } else if (lineRange.value === 'range') {
+                            // Find the start and end indices of the actual lyric lines in the full lyrics
+                            let startIndex = 0;
+                            let endIndex = 0;
+                            let lyricLineCount = 0;
+                            for (let i = 0; i < lyricsLines.length; i++) {
+                                if (!lyricsLines[i].trim().startsWith('**') && lyricsLines[i].trim() !== '') {
+                                    if (lyricLineCount === data.start_line - 1) {
+                                        startIndex = i;
+                                    }
+                                    if (lyricLineCount === data.end_line - 1) {
+                                        endIndex = i;
+                                        break;
+                                    }
+                                    lyricLineCount++;
+                                }
+                            }
+                            updatedLyrics.splice(startIndex, endIndex - startIndex + 1, ...regeneratedLines);
+                        } else {
+                            // Replace all actual lyric lines
+                            let newLyrics = [];
+                            let regeneratedIndex = 0;
+                            for (let line of lyricsLines) {
+                                if (line.trim().startsWith('**') || line.trim() === '') {
+                                    newLyrics.push(line);
+                                } else if (regeneratedIndex < regeneratedLines.length) {
+                                    newLyrics.push(regeneratedLines[regeneratedIndex]);
+                                    regeneratedIndex++;
+                                }
+                            }
+                            updatedLyrics = newLyrics;
+                        }
+                        
+                        document.getElementById('lyrics-text').textContent = updatedLyrics.join('\n');
+                    } else {
+                        console.error('No regenerated lyrics in response');
+                        alert('Failed to regenerate lyrics. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while regenerating lyrics. Please try again.');
+                });
+            }
+            textFeedbackForm.addEventListener('submit', event => handleFeedbackSubmission(event, 'text'));
+            dropdownFeedbackForm.addEventListener('submit', event => handleFeedbackSubmission(event, 'dropdown'));
+
+            backToQuestionsBtn.addEventListener('click', function() {
+                window.location.href = '/start-from-scratch';
+            });
+
+            extendLyricsBtn.addEventListener('click', function() {
+                fetch('/extend-lyrics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        current_lyrics: document.getElementById('lyrics-text').textContent
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('lyrics-text').textContent = data.extended_lyrics;
+                })
+                .catch(error => console.error('Error:', error));
+            });
+
+            explainLyricsBtn.addEventListener('click', function() {
+                let lyrics = document.getElementById('lyrics-text').textContent;
+                let inspiration = document.getElementById('inspiration').textContent;
+                let feeling = document.getElementById('feeling').textContent;
+                let musicStyle = document.getElementById('music-preferences').textContent;
+                let feedback = document.getElementById('previous-feedback').textContent;
+            
+                fetch('/explain-lyrics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        lyrics: lyrics,
+                        inspiration: inspiration,
+                        feeling: feeling,
+                        music_style: musicStyle,
+                        feedback: feedback
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Replace \n with actual newlines
+                    let formattedExplanation = data.explanation.replace(/\\n/g, '\n');
+                    
+                    // Display the explanation in the modal
+                    document.getElementById('lyrics-explanation').textContent = formattedExplanation;
+                    explanationModal.style.display = 'block';
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            });
+
+            closeModal.onclick = function() {
+                explanationModal.style.display = 'none';
+            }
+
+            window.onclick = function(event) {
+                if (event.target == explanationModal) {
+                    explanationModal.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

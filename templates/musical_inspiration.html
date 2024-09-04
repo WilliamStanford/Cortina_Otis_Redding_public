@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card w-full max-w-3xl mx-auto">
+  <div class="card-header text-2xl font-bold">Who inspires you?</div>
+  <div class="card-content">
+    <p class="mb-4">Type in musicians and bands that you like.</p>
+    <form action="{{ url_for('musical_inspiration') }}" method="post">
+      <input type="text" name="artists" class="input w-full mb-4" placeholder="e.g. alt-J, Hiatus Kaiyote">
+      <button type="submit" class="btn btn-primary w-full">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

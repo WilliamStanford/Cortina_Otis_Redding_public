@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Album Art</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .prompt-display {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #generated-image {
+            max-width: 80%;
+            max-height: 60vh;
+        }
+        label, select, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .inspiration-button {
+            margin-top: 10px;
+        }
+        .inspiration-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .inspiration-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .inspiration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .inspiration-image {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+        .selected-inspiration {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Album Art Generator</h2>
+        <form id="art-form">
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" name="subject" required>
+            <label for="theme">Theme:</label>
+            <select id="theme" name="theme" required>
+                <option value=""></option>
+                <option value="Streetwear">Streetwear</option>
+                <option value="Hip hop">Hip hop</option>
+                <option value="R&B">R&B</option>
+                <option value="Nature">Nature</option>
+                <option value="Urban">Urban</option>
+                <option value="Space">Space</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="Mythology">Mythology</option>
+                <option value="Technology">Technology</option>
+                <option value="Underwater">Underwater</option>
+                <option value="Dystopian">Dystopian</option>
+                <option value="Retro-futurism">Retro-futurism</option>
+                <option value="Dreamscape">Dreamscape</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Celestial">Celestial</option>
+                <option value="Human Form">Human Form</option>
+                <option value="Animal Kingdom">Animal Kingdom</option>
+                <option value="Metamorphosis">Metamorphosis</option>
+                <option value="Chaos and Order">Chaos and Order</option>
+            </select>
+            <label for="emotion">Emotion:</label>
+            <select id="emotion" name="emotion" required>
+                <option value=""></option>
+                <option value="Joy">Joy</option>
+                <option value="Melancholy">Melancholy</option>
+                <option value="Rage">Rage</option>
+                <option value="Serenity">Serenity</option>
+                <option value="Nostalgia">Nostalgia</option>
+                <option value="Anxiety">Anxiety</option>
+                <option value="Euphoria">Euphoria</option>
+                <option value="Despair">Despair</option>
+                <option value="Love">Love</option>
+                <option value="Alienation">Alienation</option>
+                <option value="Triumph">Triumph</option>
+                <option value="Vulnerability">Vulnerability</option>
+                <option value="Rebellion">Rebellion</option>
+                <option value="Contemplation">Contemplation</option>
+                <option value="Awe">Awe</option>
+                <option value="Longing">Longing</option>
+                <option value="Empowerment">Empowerment</option>
+                <option value="Bittersweet">Bittersweet</option>
+                <option value="Defiance">Defiance</option>
+                <option value="Introspection">Introspection</option>
+            </select>
+            <label for="style">Art Style:</label>
+            <select id="style" name="style" required>
+                <option value=""></option>
+                <option value="Photography">Photography</option>
+                <option value="Collage">Collage</option>
+                <option value="Illustration">Illustration</option>
+                <option value="8-bit">8-bit</option>
+                <option value="Futuristic">Futuristic</option>
+                <option value="Renaissance Painting">Renaissance Painting</option>
+                <option value="Abstract">Abstract</option>
+                <option value="Neon Light">Neon Light</option>
+                <option value="Experimental">Experimental</option>
+                <option value="Retro / Vintage">Retro / Vintage</option>
+                <option value="Minimalist">Minimalist</option>
+                <option value="Psychedelic">Psychedelic</option>
+                <option value="Surrealist">Surrealist</option>
+                <option value="Pop Art">Pop Art</option>
+                <option value="Vaporwave">Vaporwave</option>
+                <option value="Cyberpunk">Cyberpunk</option>
+                <option value="Impressionist">Impressionist</option>
+                <option value="Grunge">Grunge</option>
+                <option value="Art Nouveau">Art Nouveau</option>
+                <option value="Geometric">Geometric</option>
+                <option value="Glitch Art">Glitch Art</option>
+                <option value="Baroque">Baroque</option>
+                <option value="Lo-fi">Lo-fi</option>
+                <option value="Art Deco">Art Deco</option>
+                <option value="Expressionist">Expressionist</option>
+                <option value="Futuristic">Futuristic</option>
+                <option value="Gothic">Gothic</option>
+            </select>
+            <label for="model">Model:</label>
+            <select id="model" name="model" required>
+                <option value="Flux">Flux</option>
+                <option value="SDXL-Lightning">SDXL-Lightning</option>
+                <option value='Hyper-SDXL'>Hyper-SDXL</option>
+                <option value="Playground">Playground</option>
+            </select>
+
+            <button class="inspiration-button">Get Inspiration</button>
+            
+            <button type="submit">Generate</button>
+        </form>
+    </div>
+
+    <div class="main-content">
+        <div id="prompt" class="prompt-display"></div>
+        <img id="generated-image" src="" alt="Generated Album Art" style="display:none;">
+        <img id="selected-inspiration" class="selected-inspiration" src="" alt="Inspiration" style="display:none;">
+    </div>
+
+    <div id="inspiration-modal" class="inspiration-modal">
+        <div class="inspiration-content">
+            <h2>Choose Inspiration</h2>
+            <div id="inspiration-grid" class="inspiration-grid">
+                <!-- Images will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        let imagePrompts = {}; // Will be populated with the JSON data
+        let inspirationPrompt = ""; // Store the inspiration prompt
+    
+        // Load image prompts
+        $.getJSON('/image_prompts.json', function(data) {
+            imagePrompts = data;
+            console.log('Loaded image prompts:', imagePrompts);
+            populateInspirationGrid();
+        }).fail(function(jqxhr, textStatus, error) {
+            console.error("Failed to load image_prompts.json:", textStatus, error);
+            console.log("Response text:", jqxhr.responseText);
+        });
+    
+        function getUserPrompt() {
+            var theme = $('#theme').val();
+            var emotion = $('#emotion').val();
+            var subject = $('#subject').val();
+            var style = $('#style').val();
+            return `${subject}, ${theme}, ${emotion}, ${style}`;
+        }
+    
+        function updatePrompt() {
+            var userPrompt = getUserPrompt();
+            var model = $('#model').val();
+            $('#prompt').text(userPrompt);
+            $('#model_str').text(`Model: ${model}`);
+        }
+    
+        // Update prompt on form change
+        $('#art-form input, #art-form select').on('change', function() {
+            updatePrompt();
+        });
+    
+        function populateInspirationGrid() {
+            const grid = $('#inspiration-grid');
+            console.log('Populating grid...');
+            for (const [filename, data] of Object.entries(imagePrompts)) {
+                console.log(`Adding image: ${data.path}`);
+                const img = $('<img>')
+                    .addClass('inspiration-image')
+                    .attr('src', data.path)
+                    .attr('data-filename', filename)
+                    .css({
+                        'max-width': '100px',
+                        'max-height': '100px',
+                        'margin': '5px',
+                        'border': '1px solid #ddd',
+                        'cursor': 'pointer'
+                    });
+                grid.append(img);
+            }
+            console.log('Grid populated');
+        }
+    
+        $('.inspiration-button').click(function() {
+            $('#inspiration-modal').show();
+        });
+    
+        $(document).on('click', '.inspiration-image', function() {
+            const filename = $(this).data('filename');
+            inspirationPrompt = imagePrompts[filename].prompt;
+            
+            // Add the selected image next to the prompt
+            const inspirationImg = $('<img>')
+                .attr('src', imagePrompts[filename].path)
+                .attr('id', 'selected-inspiration')
+                .css({
+                    'max-width': '100px',
+                    'max-height': '100px',
+                    'margin-left': '10px',
+                    'vertical-align': 'middle'
+                });
+            
+            // Remove any existing inspiration image and add the new one
+            $('#selected-inspiration').remove();
+            $('#prompt').after(inspirationImg);
+            
+            // Close the modal
+            $('#inspiration-modal').hide();
+        });
+    
+        // Close the modal when clicking outside of it
+        $(window).click(function(event) {
+            if (event.target == $('#inspiration-modal')[0]) {
+                $('#inspiration-modal').hide();
+            }
+        });
+    
+        function generateArt() {
+            var userPrompt = getUserPrompt();
+            var combinedPrompt = userPrompt;
+            if (inspirationPrompt) {
+                combinedPrompt += " " + inspirationPrompt;
+            }
+            
+            $.ajax({
+                url: '/find-your-style',
+                method: 'POST',
+                data: $('#art-form').serialize() + '&inspirationPrompt=' + encodeURIComponent(inspirationPrompt),
+                success: function(response) {
+                    if (response.image_url) {
+                        $('#generated-image').attr('src', response.image_url).show();
+                        $('#prompt').text(userPrompt); // Display only the user prompt
+                        $('#regenerate').show();
+                    } else {
+                        $('#prompt').text('Failed to generate image. Please try again.');
+                    }
+                },
+                error: function() {
+                    $('#prompt').text('An error occurred. Please try again.');
+                }
+            });
+        }
+    
+        $('#art-form').submit(function(e) {
+            e.preventDefault();
+            generateArt();
+        });
+    
+        $('#regenerate').click(function() {
+            generateArt();
+        });
+    
+        // Initial prompt update
+        updatePrompt();
+    });
+    </script>
+</body>
+</html>

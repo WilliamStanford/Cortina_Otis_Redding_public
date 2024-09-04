@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card w-full max-w-3xl mx-auto">
+  <div class="card-header text-2xl font-bold">How do you want your song to feel?</div>
+  <div class="card-content">
+    <p class="mb-4">Select up to 5 adjectives.</p>
+    <form action="{{ url_for('emotion_selection') }}" method="post">
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        {% for emotion in emotions %}
+          <button type="button" class="btn btn-outline emotion-btn" data-emotion="{{ emotion }}">
+            {{ emotion }}
+          </button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="selected_emotions" id="selected_emotions">
+      <button type="submit" class="btn btn-primary w-full mt-4" id="submit-btn" disabled>Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const emotions = document.querySelectorAll('.emotion-btn');
+  const submitBtn = document.getElementById('submit-btn');
+  const selectedEmotionsInput = document.getElementById('selected_emotions');
+  let selectedEmotions = [];
+
+  emotions.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const emotion = btn.dataset.emotion;
+      if (selectedEmotions.includes(emotion)) {
+        selectedEmotions = selectedEmotions.filter(e => e !== emotion);
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
+      } else if (selectedEmotions.length < 5) {
+        selectedEmotions.push(emotion);
+        btn.classList.remove('btn-outline');
+        btn.classList.add('btn-primary');
+      }
+      submitBtn.disabled = selectedEmotions.length === 0;
+      selectedEmotionsInput.value = selectedEmotions.join(',');
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Style - Album Art Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 80%;
+            width: 100%;
+        }
+        #prompt-display {
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        .image-container {
+            width: 512px;
+            height: 512px;
+            margin: 20px auto;
+            border: 2px solid #D3D3D3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        #loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Generated Album Art</h1>
+        <p id="prompt-display"></p>
+        <div class="image-container">
+            <img id="generated-image" src="" alt="Generated Album Art" style="display:none;">
+            <div id="loading">Generating image...</div>
+        </div>
+        <div class="button-container">
+            <button onclick="returnToStyleQuestions()">Return to Style Questions</button>
+            <button onclick="regenerateImage()">Regenerate Image</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const prompt = urlParams.get('prompt');
+            
+            if (prompt) {
+                document.getElementById('prompt-display').textContent = "Your style: " + prompt;
+                generateImage(prompt);
+            }
+        });
+
+        function generateImage(prompt) {
+            const img = document.getElementById('generated-image');
+            const loading = document.getElementById('loading');
+            
+            img.style.display = 'none';
+            loading.style.display = 'block';
+
+            fetch('/find-your-style', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'prompt=' + encodeURIComponent(prompt)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.image_url) {
+                    img.src = data.image_url;
+                    img.onload = function() {
+                        loading.style.display = 'none';
+                        img.style.display = 'block';
+                    };
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loading.textContent = 'Error generating image. Please try again.';
+            });
+        }
+
+        function returnToStyleQuestions() {
+            window.location.href = '/style-questions';
+        }
+
+        function regenerateImage() {
+            const prompt = new URLSearchParams(window.location.search).get('prompt');
+            if (prompt) {
+                generateImage(prompt);
+            }
+        }
+    </script>
+</body>
+</html>

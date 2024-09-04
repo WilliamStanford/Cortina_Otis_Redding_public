@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Pick Up from Last Session{% endblock %}
+
+{% block content %}
+<div class="card" x-data="pickUpSession()">
+    <h2 class="text-2xl font-bold mb-4">Pick Up from Last Session</h2>
+    
+    <div x-show="!isLoggedIn" class="mb-4">
+        <p class="mb-2">Enter your session code to continue where you left off:</p>
+        <div class="flex space-x-2">
+            <input type="text" x-model="sessionCode" class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Enter session code">
+            <button @click="loadSession" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Load Session
+            </button>
+        </div>
+    </div>
+
+    <div x-show="isLoggedIn">
+        <h3 class="text-xl font-semibold mb-2">Your Saved Lyrics:</h3>
+        <ul class="space-y-2">
+            <template x-for="(lyric, index) in savedLyrics" :key="index">
+                <li class="flex items-center justify-between bg-gray-100 p-2 rounded">
+                    <span x-text="lyric"></span>
+                    <button @click="editLyric(index)" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">
+                        Edit
+                    </button>
+                </li>
+            </template>
+        </ul>
+
+        <div x-show="editingIndex !== null" class="mt-4">
+            <h4 class="text-lg font-semibold mb-2">Edit Lyric:</h4>
+            <textarea x-model="editingLyric" class="w-full p-2 border rounded" rows="3"></textarea>
+            <div class="mt-2 space-x-2">
+                <button @click="saveLyricEdit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Save Edit
+                </button>
+                <button @click="cancelEdit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <button @click="continueSongwriting" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Continue Songwriting
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function pickUpSession() {
+    return {
+        isLoggedIn: false,
+        sessionCode: '',
+        savedLyrics: [],
+        editingIndex: null,
+        editingLyric: '',
+        loadSession() {
+            // Here you would typically make an API call to load the session
+            // For this example, we'll just set some placeholder data
+            if (this.sessionCode.trim() !== '') {
+                this.isLoggedIn = true;
+                this.savedLyrics = [
+                    "First line of your previous session",
+                    "Second line you wrote last time",
+                    "Third line from before"
+                ];
+            }
+        },
+        editLyric(index) {
+            this.editingIndex = index;
+            this.editingLyric = this.savedLyrics[index];
+        },
+        saveLyricEdit() {
+            if (this.editingIndex !== null) {
+                this.savedLyrics[this.editingIndex] = this.editingLyric;
+                this.cancelEdit();
+            }
+        },
+        cancelEdit() {
+            this.editingIndex = null;
+            this.editingLyric = '';
+        },
+        continueSongwriting() {
+            // Here you would typically redirect to the main songwriting interface
+            alert('Continuing to songwriting interface...');
+        }
+    }
+}
+</script>
+{% endblock %}

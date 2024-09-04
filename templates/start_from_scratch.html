@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tell Us About Yourself</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            margin-bottom: 2rem;
+        }
+        .question {
+            display: none;
+        }
+        .question.active {
+            display: block;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        .option {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option.selected {
+            background-color: #007bff;
+            color: white;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #backBtn {
+            background-color: #6c757d;
+        }
+        #moreOptionsBtn {
+            margin-top: 1rem;
+        }
+        .hidden {
+            display: none;
+        }
+        #backToActivity {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        .container {
+            position: relative;
+            padding-top: 60px; /* Add some top padding to account for the button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="backToActivity" onclick="window.location.href='/activity-selection'">Back to Activity Selection</button>
+        <h1>Tell Us About Yourself</h1>
+        <form id="styleForm" action="{{ url_for('start_from_scratch') }}" method="post">
+            {% for question in questions %}
+                <div id="question-{{ question.name }}" class="question {% if loop.first %}active{% endif %}" data-question-name="{{ question.name }}">
+                    <h2>{{ question.title }}</h2>
+                    <div class="options">
+                        <!-- Options will be dynamically populated here -->
+                    </div>
+                    <button type="button" id="moreOptionsBtn-{{ question.name }}">More Options</button>
+                    <input type="hidden" name="{{ question.name }}" id="{{ question.name }}Input">
+                </div>
+            {% endfor %}
+            <div class="button-container">
+                <button type="button" id="backBtn" style="display: none;">Back</button>
+                <button type="button" id="nextBtn">Next</button>
+                <button type="submit" id="submitBtn" style="display: none;">Generate Lyrics</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const questions = document.querySelectorAll('.question');
+        const nextBtn = document.getElementById('nextBtn');
+        const backBtn = document.getElementById('backBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        let currentQuestion = 0;
+
+        // Store all options for each question
+        const allOptions = {
+            {% for question in questions %}
+                "{{ question.name }}": {{ question.options | tojson }},
+            {% endfor %}
+        };
+
+        // Store selected options for each question
+        const selectedOptions = {
+            {% for question in questions %}
+                "{{ question.name }}": [],
+            {% endfor %}
+        };
+
+        // Store current displayed options for each question
+        const currentDisplayedOptions = {
+            {% for question in questions %}
+                "{{ question.name }}": [],
+            {% endfor %}
+        };
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function displayOptions(questionName, regenerate = false) {
+            const optionsContainer = document.querySelector(`#question-${questionName} .options`);
+            
+            if (regenerate || currentDisplayedOptions[questionName].length === 0) {
+                const availableOptions = allOptions[questionName].filter(option => !selectedOptions[questionName].includes(option));
+                shuffleArray(availableOptions);
+                currentDisplayedOptions[questionName] = [
+                    ...selectedOptions[questionName],
+                    ...availableOptions.slice(0, 10 - selectedOptions[questionName].length)
+                ];
+            }
+
+            optionsContainer.innerHTML = '';
+            currentDisplayedOptions[questionName].forEach(option => {
+                const optionElement = createOptionElement(option, questionName);
+                if (selectedOptions[questionName].includes(option)) {
+                    optionElement.classList.add('selected');
+                }
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        function createOptionElement(option, questionName) {
+            const optionElement = document.createElement('div');
+            optionElement.classList.add('option');
+            optionElement.textContent = option;
+            optionElement.addEventListener('click', () => toggleOption(option, questionName));
+            return optionElement;
+        }
+
+        function toggleOption(option, questionName) {
+            const index = selectedOptions[questionName].indexOf(option);
+            if (index > -1) {
+                selectedOptions[questionName].splice(index, 1);
+            } else if (selectedOptions[questionName].length < 3) {
+                selectedOptions[questionName].push(option);
+            }
+            updateHiddenInput(questionName);
+            displayOptions(questionName); // Redisplay options to update selection visual
+        }
+
+        function updateHiddenInput(questionName) {
+            const input = document.getElementById(`${questionName}Input`);
+            input.value = selectedOptions[questionName].join(', ');
+        }
+
+        function updateQuestion() {
+            questions.forEach((q, index) => {
+                q.classList.toggle('active', index === currentQuestion);
+            });
+            
+            backBtn.style.display = currentQuestion > 0 ? 'inline-block' : 'none';
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+
+            // Display options for the current question
+            const currentQuestionName = questions[currentQuestion].dataset.questionName;
+            displayOptions(currentQuestionName);
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                updateQuestion();
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateQuestion();
+            }
+        });
+
+        // Add event listeners for "More Options" buttons
+        questions.forEach(question => {
+            const questionName = question.dataset.questionName;
+            const moreOptionsBtn = document.getElementById(`moreOptionsBtn-${questionName}`);
+            moreOptionsBtn.addEventListener('click', () => displayOptions(questionName, true));
+        });
+
+        document.getElementById('styleForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const allInputs = document.querySelectorAll('input[type="hidden"]');
+            const allFilled = Array.from(allInputs).some(input => input.value);
+            if (allFilled) {
+                e.target.submit();
+            } else {
+                alert('Please select at least one option for each question.');
+            }
+        });
+
+        // Initialize the question display
+        updateQuestion();
+    </script>
+</body>
+</html>

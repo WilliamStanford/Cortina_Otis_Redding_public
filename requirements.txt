@@ -1,0 +1,6 @@
+flask
+gunicorn
+replicate
+fal-client
+langchain 
+langchain-openai
